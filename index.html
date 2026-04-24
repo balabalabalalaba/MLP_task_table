@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MLP · Harmony Planner | Online Database Version</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- 引入 Supabase 客户端 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Poppins', cursive, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #fdeff2 0%, #ffe6f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        body::before {
+            content: "🦄✨🌈🎀";
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 70px;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: rgba(255, 248, 245, 0.85);
+            border-radius: 64px 64px 60px 60px;
+            box-shadow: 0 20px 35px rgba(245, 150, 200, 0.25), 0 8px 12px rgba(0,0,0,0.1);
+            backdrop-filter: blur(2px);
+            overflow: hidden;
+            border: 2px solid #ffe0f0;
+            position: relative;
+            z-index: 2;
+        }
+        .rainbow-header {
+            background: linear-gradient(90deg, #FF99CC, #FFCC99, #FFFF99, #99FFCC, #99CCFF, #CC99FF, #FF99CC);
+            padding: 20px 30px;
+            text-align: center;
+            border-bottom: 6px solid white;
+        }
+        h1 {
+            font-size: 2.6rem;
+            color: #4a2b2b;
+            text-shadow: 3px 3px 0 #ffd966;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .sub {
+            font-size: 1.2rem;
+            background: #fff0e0;
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 40px;
+            margin-top: 10px;
+            color: #b45f6b;
+            font-weight: bold;
+        }
+        .week-nav {
+            background: #fff5f9;
+            padding: 15px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 2px dashed #ffbfd5;
+        }
+        .date-picker-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffffcc;
+            padding: 5px 15px;
+            border-radius: 60px;
+        }
+        input[type="date"] {
+            padding: 8px 12px;
+            border-radius: 50px;
+            border: 1px solid #ffb7c5;
+            background: #fffafc;
+            font-family: inherit;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .pony-btn {
+            background: #ffd9e6;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: bold;
+            color: #aa4c6e;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pony-btn:hover {
+            background: #ffb7d0;
+            transform: scale(0.97);
+        }
+        .today-btn {
+            background: #b5e6b5;
+            color: #2c6e2c;
+        }
+        .current-week-label {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: #fce4ec;
+            padding: 6px 20px;
+            border-radius: 50px;
+            color: #c95a7a;
+        }
+        .time-range-bar {
+            background: #fff0e7;
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #ffd9c5;
+        }
+        .time-config {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fffaef;
+            padding: 5px 18px;
+            border-radius: 50px;
+        }
+        .time-config input {
+            width: 75px;
+            padding: 6px;
+            border-radius: 40px;
+            border: 1px solid #ffbcce;
+            text-align: center;
+        }
+        .schedule-wrapper {
+            overflow-x: auto;
+            padding: 10px 20px 20px 20px;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 6px 14px rgba(160, 100, 120, 0.2);
+            min-width: 800px;
+        }
+        .schedule-table th, .schedule-table td {
+            border: 1px solid #ffd9e8;
+            padding: 10px 6px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .schedule-table th {
+            background: #ffecf2;
+            color: #a53f64;
+            font-weight: bold;
+        }
+        .time-col {
+            background: #fffbee;
+            font-weight: bold;
+            color: #b25b7a;
+            width: 80px;
+            white-space: nowrap;
+        }
+        .task-cell {
+            cursor: pointer;
+            transition: all 0.1s ease;
+            background-color: #e9e4e0 !important;
+            max-width: 250px;
+        }
+        .task-cell:hover {
+            filter: brightness(0.96);
+            transform: scale(1.01);
+            box-shadow: inset 0 0 0 2px #ffbfd5;
+        }
+        .tag-twilight { background-color: #c394f2 !important; }
+        .tag-applejack { background-color: #ffb329 !important; }
+        .tag-pinkiepie { background-color: #ff6cae !important; }
+        .tag-rainbowdash { background-color: #85daff !important; }
+        .tag-fluttershy { background-color: #ffee86 !important; }
+        .tag-rarity { background-color: #F6E9D5 !important; }
+        .tag-none { background-color: #e9e4e0 !important; }
+        .task-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-start;
+            width: 100%;
+        }
+        .task-text-preview {
+            flex: 1;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #2d1c1c;
+            line-height: 1.3;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+        .checkbox-complete {
+            transform: scale(1.2);
+            accent-color: #e6679e;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .completed-task-preview {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .tag-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 24px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .pony-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #fff9f0, #ffeef4);
+            border-radius: 64px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 25px 50px rgba(180, 80, 120, 0.4);
+            border: 3px solid #ffe0f0;
+            overflow: hidden;
+        }
+        .modal-header {
+            background: linear-gradient(90deg, #FFB7C5, #FFD9E6);
+            padding: 18px 24px;
+            text-align: center;
+        }
+        .modal-header h2 {
+            color: #7a3e52;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .info-row {
+            background: #fff5f0;
+            padding: 10px 16px;
+            border-radius: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #b35f7a;
+        }
+        .task-textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 32px;
+            border: 2px solid #ffc0d0;
+            font-family: inherit;
+            resize: vertical;
+            margin: 10px 0;
+            font-size: 0.95rem;
+        }
+        .tag-selector {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .tag-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffeef4;
+            padding: 5px 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+        }
+        .tag-option.selected {
+            border: 2px solid #b34180;
+            background: #ffe0f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .complete-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .save-btn { background: #b5e6b5; color: #2c6e2c; padding: 8px 20px; border-radius: 40px; border: none; cursor: pointer; font-weight: bold; }
+        .cancel-btn { background: #ffe0e0; color: #b45f6b; padding: 8px 20px; border-radius: 40px; border: none; cursor: pointer; }
+        .stats-section {
+            background: #fff5fb;
+            margin: 10px 20px 20px 20px;
+            border-radius: 48px;
+            padding: 20px;
+            border: 2px solid #ffd9e5;
+        }
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .date-range-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #fff0f5;
+            padding: 6px 15px;
+            border-radius: 40px;
+        }
+        .pie-container {
+            max-width: 350px;
+            margin: 0 auto;
+        }
+        canvas#categoryChart {
+            max-height: 280px;
+        }
+        .stats-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .footer-note {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #cd88a4;
+        }
+        /* 加载提示样式 */
+        .loading-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 20px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: #b35f7a;
+            z-index: 2000;
+        }
+        @media (max-width: 750px) {
+            h1 { font-size: 1.8rem; }
+            .time-col { width: 65px; font-size: 0.8rem; }
+            .task-text-preview { font-size: 0.75rem; }
+            .tag-badge { font-size: 0.6rem; padding: 1px 5px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="rainbow-header">
+        <h1>🦄 Harmony Planner · Online DB ☁️</h1>
+        <div class="sub">✨ Twilight · Applejack · Pinkie Pie · RainbowDash · Fluttershy · Rarity ✨</div>
+    </div>
+
+    <div class="week-nav">
+        <div class="date-picker-area">
+            <label>📅 View week start:</label>
+            <input type="date" id="weekStartDate">
+            <button class="pony-btn" id="goToWeekBtn">✨ Jump</button>
+        </div>
+        <div class="nav-buttons">
+            <button class="pony-btn" id="prevWeekBtn">⏪ Previous week</button>
+            <button class="pony-btn today-btn" id="currentWeekBtn">🌟 This week</button>
+            <button class="pony-btn" id="nextWeekBtn">Next week ⏩</button>
+        </div>
+        <div class="current-week-label" id="weekRangeDisplay">Loading...</div>
+    </div>
+
+    <div class="time-range-bar">
+        <div class="time-config">
+            <span>⏰ Time slots (1 hour intervals)</span>
+            <input type="number" id="startHour" value="8" step="1" min="0" max="23">
+            <span>to</span>
+            <input type="number" id="endHour" value="22" step="1" min="0" max="23">
+            <button class="pony-btn update-time-btn" id="updateTimeRangeBtn">🌈 Apply</button>
+        </div>
+        <div class="time-config">
+            <span>💖 Click any cell → edit task + choose pony tag</span>
+        </div>
+    </div>
+
+    <div class="schedule-wrapper">
+        <table class="schedule-table" id="planTable">
+            <thead id="tableHeader"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-header">
+            <span>📊 Pony Stats · Task Distribution Pie Chart</span>
+            <div class="date-range-picker">
+                <label>📅 Range:</label>
+                <input type="date" id="statsStartDate">
+                <span>～</span>
+                <input type="date" id="statsEndDate">
+                <button class="pony-btn" id="refreshStatsBtn">🍪 Update Chart</button>
+            </div>
+        </div>
+        <div class="pie-container">
+            <canvas id="categoryChart" width="400" height="300" style="max-width:100%; height:auto;"></canvas>
+        </div>
+        <div class="stats-legend" id="legendArea"></div>
+        <div style="text-align:center; margin-top:8px;"><small>✨ Count of tasks by pony tag in selected date range ✨</small></div>
+    </div>
+    <div class="footer-note">
+        ☁️ Data stored in real-time database (Supabase) – share across devices! 🎀
+    </div>
+</div>
+
+<div id="taskModal" class="pony-modal">
+    <div class="modal-content">
+        <div class="modal-header"><h2><span>🦄</span> Edit Sparkle Task <span>✨</span></h2></div>
+        <div class="modal-body">
+            <div class="info-row"><span>📅 Date</span><span id="modalDate">---</span></div>
+            <div class="info-row"><span>⏰ Time Slot</span><span id="modalTimeSlot">---</span></div>
+            <div class="complete-toggle">
+                <input type="checkbox" id="modalCompleted"> <label>✅ Mark as completed</label>
+            </div>
+            <div><label>📝 Task description:</label>
+                <textarea id="modalTaskText" rows="3" class="task-textarea" placeholder="Write your magical plan..."></textarea>
+            </div>
+            <div class="tag-selector">
+                <span>🏷️ Choose a pony tag:</span>
+                <div data-tag="twilight" class="tag-option">📚 Twilight</div>
+                <div data-tag="applejack" class="tag-option">🍎 Applejack</div>
+                <div data-tag="pinkiepie" class="tag-option">🎉 Pinkie Pie</div>
+                <div data-tag="rainbowdash" class="tag-option">🌈 RainbowDash</div>
+                <div data-tag="fluttershy" class="tag-option">🦋 Fluttershy</div>
+                <div data-tag="rarity" class="tag-option">💎 Rarity</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="closeModalBtn">🌸 Cancel</button>
+                <button class="save-btn" id="saveTaskBtn">💾 Save Magic</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== SUPABASE 配置 ====================
+    // 请将下面的 URL 和 anon key 替换为你自己的 Supabase 项目信息
+    const SUPABASE_URL = 'https://bvmelwiidciatnrapenv.supabase.co';   // 你的 Supabase URL
+    const SUPABASE_ANON_KEY = 'sb_publishable_r2n0xeyV0qMKWlaWXLU7Wg_CceZRWqK';               // 你的 anon/public key
+    // =====================================================
+
+    if (SUPABASE_URL.includes('your-project-id')) {
+        document.body.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">' +
+            '🦄 请先配置 Supabase：打开此 HTML 文件，将 <code>SUPABASE_URL</code> 和 <code>SUPABASE_ANON_KEY</code> 替换为你自己的 Supabase 项目凭证。</div>';
+        throw new Error('Supabase not configured');
+    }
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ---------- 其他全局变量 ----------
+    const TIME_RANGE_KEY = "MLP_TimeRange_v5";   // 时间范围仍存 localStorage
+    let startHour = 8, endHour = 22;
+    let currentMonday = new Date();
+    let currentEditInfo = { date: null, timeSlot: null };
+    let selectedTag = "none";
+    let chartInstance = null;
+
+    const tagMap = {
+        twilight:   { name: "Twilight",   class: "tag-twilight",   icon: "📚" },
+        applejack:  { name: "Applejack",  class: "tag-applejack",  icon: "🍎" },
+        pinkiepie:  { name: "Pinkie Pie", class: "tag-pinkiepie",  icon: "🎉" },
+        rainbowdash: { name: "RainbowDash",class: "tag-rainbowdash",icon: "🌈" },
+        fluttershy: { name: "Fluttershy", class: "tag-fluttershy", icon: "🦋" },
+        rarity:     { name: "Rarity",     class: "tag-rarity",     icon: "💎" },
+        none:       { name: "None",       class: "tag-none",       icon: "✨" }
+    };
+
+    // 工具函数
+    function formatYMD(d) { 
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; 
+    }
+    function getMondayDate(date) { 
+        let d=new Date(date); 
+        const day=d.getDay(); 
+        const diff=(day===0?6:day-1); 
+        d.setDate(d.getDate()-diff); 
+        d.setHours(0,0,0,0); 
+        return d; 
+    }
+    function getWeekDates(monday) { 
+        let arr=[]; 
+        for(let i=0;i<7;i++){ 
+            let day=new Date(monday); 
+            day.setDate(monday.getDate()+i); 
+            arr.push(day); 
+        } 
+        return arr; 
+    }
+
+    // ========== 数据库操作（替换 localStorage） ==========
+    // 从 Supabase 加载多个日期的任务，返回以 ymd 为键的对象 { "2025-01-01": { tasks: { "08:00": {...}, ... } }, ... }
+    async function loadTasksForDates(ymdList) {
+        if (ymdList.length === 0) return {};
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .in('date', ymdList);
+        if (error) {
+            console.error('加载任务失败:', error);
+            return {};
+        }
+        // 重组数据
+        const result = {};
+        for (const row of data) {
+            const date = row.date;
+            if (!result[date]) result[date] = { tasks: {} };
+            result[date].tasks[row.time_slot] = {
+                text: row.text || '',
+                completed: row.completed || false,
+                tag: row.tag || 'none'
+            };
+        }
+        // 补充没有记录的日期
+        for (const ymd of ymdList) {
+            if (!result[ymd]) result[ymd] = { tasks: {} };
+        }
+        return result;
+    }
+
+    // 保存一个任务（upsert）
+    async function saveTask(ymd, timeSlot, text, completed, tag) {
+        const { error } = await supabase
+            .from('tasks')
+            .upsert([
+                {
+                    date: ymd,
+                    time_slot: timeSlot,
+                    text: text || '',
+                    completed: completed || false,
+                    tag: tag || 'none'
+                }
+            ], { onConflict: 'date, time_slot' });
+        if (error) {
+            console.error('保存任务失败:', error);
+            alert('保存失败，请检查控制台。');
+        }
+    }
+
+    // 获取范围内任务统计
+    async function getStatsInRange(startYMD, endYMD) {
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('tag')
+            .gte('date', startYMD)
+            .lte('date', endYMD);
+        if (error) {
+            console.error('统计查询失败:', error);
+            return {};
+        }
+        const counts = {
+            twilight: 0, applejack: 0, pinkiepie: 0, rainbowdash: 0,
+            fluttershy: 0, rarity: 0, none: 0
+        };
+        for (const row of data) {
+            const tag = row.tag || 'none';
+            if (counts.hasOwnProperty(tag)) counts[tag]++;
+            else counts.none++;
+        }
+        return counts;
+    }
+
+    // ---------- 时间范围和 UI ----------
+    function loadTimeRange(){
+        let saved=localStorage.getItem(TIME_RANGE_KEY);
+        if(saved){ let r=JSON.parse(saved); startHour=r.start; endHour=r.end; }
+        startHour=Math.min(23,Math.max(0,startHour)); endHour=Math.min(23,Math.max(0,endHour));
+        if(startHour>endHour){let t=startHour; startHour=endHour; endHour=t;}
+        document.getElementById('startHour').value=startHour; 
+        document.getElementById('endHour').value=endHour;
+    }
+    function saveTimeRange(){ 
+        localStorage.setItem(TIME_RANGE_KEY,JSON.stringify({start:startHour,end:endHour})); 
+    }
+    function getTimeSlots(){ 
+        let slots=[]; 
+        for(let h=startHour; h<=endHour; h++) slots.push(`${h.toString().padStart(2,'0')}:00`); 
+        if(slots.length===0) slots.push(`${startHour}:00`);
+        return slots; 
+    }
+
+    // 全局缓存当前周的任务数据
+    let currentWeekData = {};
+
+    async function renderCurrentWeek(){
+        let monday=new Date(currentMonday);
+        let weekDates=getWeekDates(monday);
+        let ymds = weekDates.map(d => formatYMD(d));
+        let startW=weekDates[0], endW=weekDates[6];
+        document.getElementById('weekRangeDisplay').innerHTML=`📆 ${formatYMD(startW)} ~ ${formatYMD(endW)} ✨`;
+
+        // 显示加载提示（可选）
+        showLoading(true);
+        currentWeekData = await loadTasksForDates(ymds);
+        showLoading(false);
+
+        let weekDays=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+        let thead=`<tr><th>⏰ Time</th>`;
+        for(let i=0;i<weekDates.length;i++) 
+            thead+=`<th>${weekDays[i]}<br><span style="font-size:0.7rem;">${formatYMD(weekDates[i])}</span></th>`;
+        thead+=`<\/tr>`;
+        document.getElementById('tableHeader').innerHTML=thead;
+
+        let slots=getTimeSlots();
+        let tbody='';
+        for(let slot of slots){
+            tbody+=`<tr><td class="time-col">${slot}<\/td>`;
+            for(let i=0;i<weekDates.length;i++){
+                let ymd = formatYMD(weekDates[i]);
+                let dayData = currentWeekData[ymd] || { tasks: {} };
+                let task = dayData.tasks[slot] || { text:"", completed:false, tag:"none" };
+                let tagKey = task.tag && tagMap[task.tag] ? task.tag : "none";
+                let tagClass = tagMap[tagKey].class;
+                let checkedAttr = task.completed ? 'checked' : '';
+                let displayText = task.text && task.text.trim() !== "" ? task.text : "✨ Click to add ✨";
+                let iconTag = tagMap[tagKey].icon;
+                let shortName = tagMap[tagKey].name;
+                
+                tbody+=`
+                    <td class="task-cell ${tagClass}" data-date="${ymd}" data-timeslot="${slot}">
+                        <div class="task-preview">
+                            <input type="checkbox" class="checkbox-complete" data-date="${ymd}" data-timeslot="${slot}" ${checkedAttr}>
+                            <div class="task-text-preview ${task.completed?'completed-task-preview':''}">
+                                ${escapeHtml(displayText)}
+                                <span class="tag-badge">${iconTag} ${shortName}</span>
+                            </div>
+                        </div>
+                    <\/td>
+                `;
+            }
+            tbody+=`<\/tr>`;
+        }
+        document.getElementById('tableBody').innerHTML=tbody;
+        attachCellEvents(); 
+        attachCheckEvents();
+    }
+
+    function escapeHtml(str){ 
+        if(!str) return ""; 
+        return str.replace(/[&<>]/g,function(m){ 
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
+    }
+
+    function attachCellEvents(){
+        document.querySelectorAll('.task-cell').forEach(cell=>{
+            cell.removeEventListener('click',cellClickHandler);
+            cell.addEventListener('click',cellClickHandler);
+        });
+    }
+    function cellClickHandler(e){
+        if(e.target.classList && e.target.classList.contains('checkbox-complete')){ 
+            e.stopPropagation(); 
+            return; 
+        }
+        let date=this.getAttribute('data-date'), timeslot=this.getAttribute('data-timeslot');
+        if(date && timeslot) openModal(date,timeslot);
+    }
+    function attachCheckEvents(){
+        document.querySelectorAll('.checkbox-complete').forEach(chk=>{
+            chk.removeEventListener('change',checkChangeHandler);
+            chk.addEventListener('change',checkChangeHandler);
+        });
+    }
+    async function checkChangeHandler(e){
+        e.stopPropagation();
+        let date=this.getAttribute('data-date'), slot=this.getAttribute('data-timeslot');
+        let dayData = currentWeekData[date];
+        if (!dayData) dayData = { tasks: {} };
+        let task = dayData.tasks[slot] || { text:"", completed:false, tag:"none" };
+        await saveTask(date, slot, task.text, this.checked, task.tag);
+        // 更新本地缓存
+        if (!currentWeekData[date]) currentWeekData[date] = { tasks: {} };
+        currentWeekData[date].tasks[slot] = { ...task, completed: this.checked };
+        renderCurrentWeek();
+        updateStatistics();
+    }
+
+    function openModal(date,slot){
+        currentEditInfo={date,timeSlot:slot};
+        let dayData = currentWeekData[date];
+        if (!dayData) dayData = { tasks: {} };
+        let task = dayData.tasks[slot] || { text:"", completed:false, tag:"none" };
+        document.getElementById('modalDate').innerText=date;
+        document.getElementById('modalTimeSlot').innerText=slot;
+        document.getElementById('modalTaskText').value=task.text;
+        document.getElementById('modalCompleted').checked=task.completed;
+        selectedTag=task.tag && tagMap[task.tag] ? task.tag : "none";
+        highlightTagInModal(selectedTag);
+        document.getElementById('taskModal').style.display='flex';
+    }
+    function highlightTagInModal(tag){
+        document.querySelectorAll('.tag-option').forEach(el=>{
+            let t=el.getAttribute('data-tag');
+            if(t===tag) el.classList.add('selected');
+            else el.classList.remove('selected');
+        });
+    }
+    function closeModal(){ 
+        document.getElementById('taskModal').style.display='none'; 
+        currentEditInfo=null; 
+    }
+    async function saveModal(){
+        if(!currentEditInfo) return;
+        let newText=document.getElementById('modalTaskText').value;
+        let completed=document.getElementById('modalCompleted').checked;
+        let finalTag=selectedTag;
+        await saveTask(currentEditInfo.date, currentEditInfo.timeSlot, newText, completed, finalTag);
+        // 更新本地缓存
+        if (!currentWeekData[currentEditInfo.date]) currentWeekData[currentEditInfo.date] = { tasks: {} };
+        currentWeekData[currentEditInfo.date].tasks[currentEditInfo.timeSlot] = { 
+            text: newText, completed, tag: finalTag 
+        };
+        renderCurrentWeek();
+        closeModal();
+        updateStatistics();
+    }
+
+    async function updateStatistics(){
+        let startInput=document.getElementById('statsStartDate').value;
+        let endInput=document.getElementById('statsEndDate').value;
+        if(!startInput || !endInput){
+            let mon=getMondayDate(new Date());
+            let weekDates=getWeekDates(mon);
+            startInput=formatYMD(weekDates[0]);
+            endInput=formatYMD(weekDates[6]);
+            document.getElementById('statsStartDate').value=startInput;
+            document.getElementById('statsEndDate').value=endInput;
+        }
+        showLoading(true);
+        let stats = await getStatsInRange(startInput, endInput);
+        showLoading(false);
+        let labels=[], data=[], bgColors=[];
+        let mapping=[
+            {key:'twilight', label:'Twilight', color:'#c394f2'},
+            {key:'applejack', label:'Applejack', color:'#ffb329'},
+            {key:'pinkiepie', label:'Pinkie Pie', color:'#ff6cae'},
+            {key:'rainbowdash', label:'RainbowDash', color:'#85daff'},
+            {key:'fluttershy', label:'Fluttershy', color:'#ffee86'},
+            {key:'rarity', label:'Rarity', color:'#F6E9D5'},
+            {key:'none', label:'Untagged', color:'#d9cdc0'}
+        ];
+        mapping.forEach(m=>{ labels.push(m.label); data.push(stats[m.key]||0); bgColors.push(m.color); });
+        if(chartInstance) chartInstance.destroy();
+        let ctx=document.getElementById('categoryChart').getContext('2d');
+        chartInstance=new Chart(ctx,{ 
+            type:'pie', 
+            data:{ labels:labels, datasets:[{ data:data, backgroundColor:bgColors, borderWidth:0 }] }, 
+            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'bottom' } } } 
+        });
+        let legendHtml='';
+        mapping.forEach((m,idx)=>{ 
+            if(stats[m.key] > 0) legendHtml+=`<div><span class="legend-color" style="background:${bgColors[idx]}"></span> ${m.label}: ${stats[m.key]} hours</div>`; 
+        });
+        document.getElementById('legendArea').innerHTML=legendHtml || '<div>✨ No tasks in this period ✨</div>';
+    }
+
+    function changeWeek(delta){ 
+        let nm=new Date(currentMonday); 
+        nm.setDate(currentMonday.getDate()+delta*7); 
+        currentMonday=nm; 
+        renderCurrentWeek(); 
+        updateStatistics(); 
+    }
+    function goToCurrentWeek(){ 
+        currentMonday=getMondayDate(new Date()); 
+        renderCurrentWeek(); 
+        updateStatistics(); 
+    }
+    function goToWeekByDate(val){ 
+        let d=new Date(val); 
+        if(isNaN(d)) return; 
+        currentMonday=getMondayDate(d); 
+        renderCurrentWeek(); 
+        updateStatistics(); 
+    }
+    function updateTimeRangeUI(){ 
+        let newS=parseInt(document.getElementById('startHour').value), newE=parseInt(document.getElementById('endHour').value); 
+        if(isNaN(newS)) newS=8; if(isNaN(newE)) newE=22; 
+        if(newS<0) newS=0; if(newE>23) newE=23; 
+        if(newS>newE){let t=newS; newS=newE; newE=t;} 
+        startHour=newS; endHour=newE; 
+        saveTimeRange(); 
+        renderCurrentWeek(); 
+        updateStatistics(); 
+    }
+
+    // 一个简单的加载指示器
+    function showLoading(show) {
+        let overlay = document.getElementById('loadingOverlay');
+        if (show) {
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'loadingOverlay';
+                overlay.className = 'loading-overlay';
+                overlay.innerHTML = '🦄 Loading magic...';
+                document.body.appendChild(overlay);
+            }
+            overlay.style.display = 'block';
+        } else {
+            if (overlay) overlay.style.display = 'none';
+        }
+    }
+
+    async function init(){
+        loadTimeRange();
+        currentMonday=getMondayDate(new Date());
+        await renderCurrentWeek();
+        let todayStr=formatYMD(new Date());
+        document.getElementById('weekStartDate').value=todayStr;
+        let mon=getMondayDate(new Date());
+        let weekDates=getWeekDates(mon);
+        document.getElementById('statsStartDate').value=formatYMD(weekDates[0]);
+        document.getElementById('statsEndDate').value=formatYMD(weekDates[6]);
+        await updateStatistics();
+
+        document.getElementById('prevWeekBtn').onclick=()=>changeWeek(-1);
+        document.getElementById('nextWeekBtn').onclick=()=>changeWeek(1);
+        document.getElementById('currentWeekBtn').onclick=goToCurrentWeek;
+        document.getElementById('goToWeekBtn').onclick=()=>{ 
+            let v=document.getElementById('weekStartDate').value; 
+            if(v) goToWeekByDate(v); 
+        };
+        document.getElementById('updateTimeRangeBtn').onclick=updateTimeRangeUI;
+        document.getElementById('closeModalBtn').onclick=closeModal;
+        document.getElementById('saveTaskBtn').onclick=saveModal;
+        document.getElementById('refreshStatsBtn').onclick=()=>updateStatistics();
+        document.querySelectorAll('.tag-option').forEach(el=>{
+            el.onclick=(e)=>{ 
+                e.stopPropagation(); 
+                let tag=el.getAttribute('data-tag'); 
+                selectedTag=tag; 
+                highlightTagInModal(tag); 
+            };
+        });
+        window.onclick=(e)=>{ 
+            let m=document.getElementById('taskModal'); 
+            if(e.target===m) closeModal(); 
+        };
+    }
+    init();
+</script>
+</body>
+</html>
