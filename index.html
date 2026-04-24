@@ -22,19 +22,6 @@
         .container {
             border-radius: 32px 32px 30px 30px;
         }
-        /* 针对手机端（屏幕宽度小于 750px）的适配 */
-        .corner-pony {
-            height: 20px;       /* 缩小图片高度 */
-            right: -5px;         /* 稍微往边缘挪一点 */
-            bottom: -5px;
-            opacity: 0.6;        /* 增加透明度，防止遮挡文字 */
-            transition: opacity 0.3s; /* 增加一个过渡效果 */
-        }
-        
-        /* 当你手指触摸到图片附近区域时，恢复亮度 */
-        .corner-pony:active {
-            opacity: 1;
-        }
         /* 标题缩小 */
         h1 {
             font-size: 1.5rem;
@@ -522,13 +509,24 @@
             position: fixed;
             bottom: -20px;
             right: -10px;
-            height: 200px;
+            height: 300px;
             z-index: 100;
             pointer-events: none; /* 穿透点击，不影响操作表格 */
             filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.1));
             transition: transform 0.5s ease;
         }
-        
+        @media (max-width: 750px) {
+            .corner-pony {
+                height: 150px !important; /* 使用 !important 强制生效 */
+                opacity: 0.6;
+                right: 0px;
+                bottom: 0px;
+            }
+                /* 当你手指触摸到图片附近区域时，恢复亮度 */
+            .corner-pony:active {
+                opacity: 1;
+            }
+        }
         @media (max-width: 750px) {
             h1 { font-size: 1.8rem; }
             .time-col { width: 65px; font-size: 0.8rem; }
