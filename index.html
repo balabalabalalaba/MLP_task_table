@@ -509,7 +509,7 @@
         throw new Error('Supabase not configured');
     }
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ---------- 其他全局变量 ----------
     const TIME_RANGE_KEY = "MLP_TimeRange_v5";   // 时间范围仍存 localStorage
@@ -555,7 +555,7 @@
     // 从 Supabase 加载多个日期的任务，返回以 ymd 为键的对象 { "2025-01-01": { tasks: { "08:00": {...}, ... } }, ... }
     async function loadTasksForDates(ymdList) {
         if (ymdList.length === 0) return {};
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('tasks')
             .select('*')
             .in('date', ymdList);
@@ -583,7 +583,7 @@
 
     // 保存一个任务（upsert）
     async function saveTask(ymd, timeSlot, text, completed, tag) {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('tasks')
             .upsert([
                 {
@@ -602,7 +602,7 @@
 
     // 获取范围内任务统计
     async function getStatsInRange(startYMD, endYMD) {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('tasks')
             .select('tag')
             .gte('date', startYMD)
