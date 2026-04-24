@@ -506,6 +506,21 @@
             color: #b35f7a;
             z-index: 2000;
         }
+        .corner-pony {
+            position: fixed;
+            bottom: -20px;
+            right: -10px;
+            height: 350px;
+            z-index: 100;
+            pointer-events: none; /* 穿透点击，不影响操作表格 */
+            filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.1));
+            transition: transform 0.5s ease;
+        }
+        
+        /* 鼠标悬停在容器时，小马悄悄探出头来 */
+        .container:hover + .pony-stand-in .corner-pony {
+            transform: translateX(-10px) rotate(-2deg);
+        }
         @media (max-width: 750px) {
             h1 { font-size: 1.8rem; }
             .time-col { width: 65px; font-size: 0.8rem; }
@@ -528,7 +543,11 @@
             font-size:1rem; padding:10px 30px;">✨ my plan</button>
     <p id="lockError" style="color:#d33; margin-top:10px; display:none;">wrong passward，try agin 🚫</p>
 </div>
-
+    
+<div class="pony-stand-in">
+    <img src="https://derived.ponychan.net/twilight_sparkle_vector.png" class="corner-pony" id="sidebarPony">
+</div>
+    
 <div id="appContainer" style="display:none;">
     <div class="container">
         <div class="rainbow-header">
