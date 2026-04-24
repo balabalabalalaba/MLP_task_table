@@ -15,10 +15,18 @@
             font-family: 'Segoe UI', 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Poppins', cursive, sans-serif;
         }
         body {
-            background: linear-gradient(145deg, #fdeff2 0%, #ffe6f0 100%);
-            min-height: 100vh;
+            /* 替换原来的 background */
+            background: linear-gradient(rgba(255, 230, 240, 0.7), rgba(255, 230, 240, 0.7)), 
+                        url('mlp_background.png'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* 这样滚动时背景不动，更有质感 */
+            
+            font-family: 'Segoe UI', 'Quicksand', 'Poppins', sans-serif;
             padding: 20px;
+            min-height: 100vh;
             position: relative;
+            overflow-x: hidden;
         }
         body::before {
             content: "🦄✨🌈🎀";
