@@ -405,65 +405,81 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="rainbow-header">
-        <h1>🦄 Harmony Planner · Online DB ☁️</h1>
-        <div class="sub">✨ Twilight · Applejack · Pinkie Pie · RainbowDash · Fluttershy · Rarity ✨</div>
-    </div>
 
-    <div class="week-nav">
-        <div class="date-picker-area">
-            <label>📅 View week start:</label>
-            <input type="date" id="weekStartDate">
-            <button class="pony-btn" id="goToWeekBtn">✨ Jump</button>
-        </div>
-        <div class="nav-buttons">
-            <button class="pony-btn" id="prevWeekBtn">⏪ Previous week</button>
-            <button class="pony-btn today-btn" id="currentWeekBtn">🌟 This week</button>
-            <button class="pony-btn" id="nextWeekBtn">Next week ⏩</button>
-        </div>
-        <div class="current-week-label" id="weekRangeDisplay">Loading...</div>
-    </div>
+<div id="lockScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; 
+     background: rgba(255,245,250,0.97); z-index:9999; flex-direction:column; 
+     align-items:center; justify-content:center; font-family: inherit;">
+    <h1>🦄 Harmony Planner</h1>
+    <p style="font-size:1.2rem; color:#b35f7a;">只属于你的魔法计划本</p>
+    <input type="password" id="lockPassword" placeholder="输入密码解锁" 
+           style="padding:12px 20px; border-radius:30px; border:2px solid #ffb7c5; 
+                  font-size:1rem; width:250px; text-align:center; margin:15px;">
+    <button id="unlockBtn" class="pony-btn" style="background:#b5e6b5; color:#2c6e2c; 
+            font-size:1rem; padding:10px 30px;">✨ 进入我的计划</button>
+    <p id="lockError" style="color:#d33; margin-top:10px; display:none;">密码错误，再试一次 🚫</p>
+</div>
 
-    <div class="time-range-bar">
-        <div class="time-config">
-            <span>⏰ Time slots (1 hour intervals)</span>
-            <input type="number" id="startHour" value="8" step="1" min="0" max="23">
-            <span>to</span>
-            <input type="number" id="endHour" value="22" step="1" min="0" max="23">
-            <button class="pony-btn update-time-btn" id="updateTimeRangeBtn">🌈 Apply</button>
+<div id="appContainer" style="display:none;">
+    <div class="container">
+        <div class="rainbow-header">
+            <h1>🦄 Harmony Planner · Online DB ☁️</h1>
+            <div class="sub">✨ Twilight · Applejack · Pinkie Pie · RainbowDash · Fluttershy · Rarity ✨</div>
         </div>
-        <div class="time-config">
-            <span>💖 Click any cell → edit task + choose pony tag</span>
+
+        <div class="week-nav">
+            <div class="date-picker-area">
+                <label>📅 View week start:</label>
+                <input type="date" id="weekStartDate">
+                <button class="pony-btn" id="goToWeekBtn">✨ Jump</button>
+            </div>
+            <div class="nav-buttons">
+                <button class="pony-btn" id="prevWeekBtn">⏪ Previous week</button>
+                <button class="pony-btn today-btn" id="currentWeekBtn">🌟 This week</button>
+                <button class="pony-btn" id="nextWeekBtn">Next week ⏩</button>
+            </div>
+            <div class="current-week-label" id="weekRangeDisplay">Loading...</div>
         </div>
-    </div>
 
-    <div class="schedule-wrapper">
-        <table class="schedule-table" id="planTable">
-            <thead id="tableHeader"></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-
-    <div class="stats-section">
-        <div class="stats-header">
-            <span>📊 Pony Stats · Task Distribution Pie Chart</span>
-            <div class="date-range-picker">
-                <label>📅 Range:</label>
-                <input type="date" id="statsStartDate">
-                <span>～</span>
-                <input type="date" id="statsEndDate">
-                <button class="pony-btn" id="refreshStatsBtn">🍪 Update Chart</button>
+        <div class="time-range-bar">
+            <div class="time-config">
+                <span>⏰ Time slots (1 hour intervals)</span>
+                <input type="number" id="startHour" value="8" step="1" min="0" max="23">
+                <span>to</span>
+                <input type="number" id="endHour" value="22" step="1" min="0" max="23">
+                <button class="pony-btn update-time-btn" id="updateTimeRangeBtn">🌈 Apply</button>
+            </div>
+            <div class="time-config">
+                <span>💖 Click any cell → edit task + choose pony tag</span>
             </div>
         </div>
-        <div class="pie-container">
-            <canvas id="categoryChart" width="400" height="300" style="max-width:100%; height:auto;"></canvas>
+
+        <div class="schedule-wrapper">
+            <table class="schedule-table" id="planTable">
+                <thead id="tableHeader"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
-        <div class="stats-legend" id="legendArea"></div>
-        <div style="text-align:center; margin-top:8px;"><small>✨ Count of tasks by pony tag in selected date range ✨</small></div>
-    </div>
-    <div class="footer-note">
-        ☁️ Data stored in real-time database (Supabase) – share across devices! 🎀
+
+        <div class="stats-section">
+            <div class="stats-header">
+                <span>📊 Pony Stats · Task Distribution Pie Chart</span>
+                <div class="date-range-picker">
+                    <label>📅 Range:</label>
+                    <input type="date" id="statsStartDate">
+                    <span>～</span>
+                    <input type="date" id="statsEndDate">
+                    <button class="pony-btn" id="refreshStatsBtn">🍪 Update Chart</button>
+                </div>
+            </div>
+            <div class="pie-container">
+                <canvas id="categoryChart" width="400" height="300" style="max-width:100%; height:auto;"></canvas>
+            </div>
+            <div class="stats-legend" id="legendArea"></div>
+            <div style="text-align:center; margin-top:8px;"><small>✨ Count of tasks by pony tag in selected date range ✨</small></div>
+        </div>
+        <div class="footer-note">
+            ☁️ Data stored in real-time database (Supabase) – share across devices! 🎀
+        </div>
     </div>
 </div>
 
@@ -502,7 +518,7 @@
     const SUPABASE_URL = 'https://bvmelwiidciatnrapenv.supabase.co';   // 你的 Supabase URL
     const SUPABASE_ANON_KEY = 'sb_publishable_r2n0xeyV0qMKWlaWXLU7Wg_CceZRWqK';               // 你的 anon/public key
     // =====================================================
-
+    const FIXED_EMAIL = 'twilightsparkle@qq.com';
     if (SUPABASE_URL.includes('your-project-id')) {
         document.body.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">' +
             '🦄 请先配置 Supabase：打开此 HTML 文件，将 <code>SUPABASE_URL</code> 和 <code>SUPABASE_ANON_KEY</code> 替换为你自己的 Supabase 项目凭证。</div>';
@@ -867,8 +883,44 @@
             if (overlay) overlay.style.display = 'none';
         }
     }
+    async function unlock() {
+        const password = document.getElementById('lockPassword').value;
+        if (!password) return;
 
-    async function init(){
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: FIXED_EMAIL,
+            password: password
+        });
+
+        if (error) {
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+
+        // 登录成功，显示主应用
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        // 保存登录状态（下次自动登录）
+        sessionStorage.setItem('planner_logged_in', 'yes');
+        initApp();
+    }
+
+    // 页面加载时自动尝试恢复 session
+    async function tryAutoLogin() {
+        // 如果之前登录过，session 可能还在
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            initApp();
+        }
+    }
+
+    document.getElementById('unlockBtn').addEventListener('click', unlock);
+    document.getElementById('lockPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') unlock();
+    });
+    async function initApp(){
         loadTimeRange();
         currentMonday=getMondayDate(new Date());
         await renderCurrentWeek();
@@ -904,7 +956,7 @@
             if(e.target===m) closeModal(); 
         };
     }
-    init();
+    window.addEventListener('DOMContentLoaded', tryAutoLogin);
 </script>
 </body>
 </html>
