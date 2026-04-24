@@ -14,6 +14,108 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Poppins', cursive, sans-serif;
         }
+        @media (max-width: 750px) {
+        /* 整体容器内边距减少 */
+        body {
+            padding: 8px;
+        }
+        .container {
+            border-radius: 32px 32px 30px 30px;
+        }
+    
+        /* 标题缩小 */
+        h1 {
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 0 #ffd966;
+        }
+        .sub {
+            font-size: 0.9rem;
+            padding: 4px 12px;
+        }
+    
+        /* 顶部导航改为垂直排列 */
+        .week-nav {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .date-picker-area, .nav-buttons {
+            justify-content: center;
+        }
+        .current-week-label {
+            text-align: center;
+            font-size: 1rem;
+        }
+    
+        /* 时间栏也垂直堆叠 */
+        .time-range-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 10px 15px;
+        }
+        .time-config {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    
+        /* 表格区域 - 确保横向滚动 */
+        .schedule-wrapper {
+            padding: 8px 10px 15px 10px;
+        }
+        .schedule-table {
+            min-width: 800px;   /* 保持最小宽度，强制滚动 */
+            font-size: 0.75rem; /* 整体缩小字体 */
+        }
+        .schedule-table th, .schedule-table td {
+            padding: 6px 2px;
+        }
+        .time-col {
+            width: 55px;
+            font-size: 0.7rem;
+        }
+        .task-text-preview {
+            font-size: 0.7rem;
+        }
+        .tag-badge {
+            font-size: 0.6rem;
+            padding: 1px 5px;
+            margin-left: 4px;
+        }
+    
+        /* 统计区域 */
+        .stats-section {
+            padding: 15px;
+            margin: 10px 10px 15px 10px;
+        }
+        .stats-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .date-range-picker {
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .pie-container {
+            max-width: 100%;
+        }
+    
+        /* 模态窗口占满屏幕 */
+        .modal-content {
+            width: 92%;
+            border-radius: 32px;
+        }
+        .modal-body {
+            padding: 15px;
+        }
+        .tag-selector {
+            gap: 6px;
+        }
+        .tag-option {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+        }
+    }
         body {
             /* 替换原来的 background */
             background: linear-gradient(rgba(255, 230, 240, 0.7), rgba(255, 230, 240, 0.7)), 
